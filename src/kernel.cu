@@ -1,5 +1,8 @@
 #include <cuda_runtime.h>
 #include <cutil_inline.h>
+#include <stdio.h>
+
+#include "kernel.h"
 
 
 #define THREADS_PER_BLOCK 64
@@ -36,7 +39,7 @@ __global__ void kernel(unsigned long long *messages_d, unsigned long long *state
 /*
  *
  */
-extern "C"
+//extern "C"
 void launch_kernel(unsigned long long *messages_h, unsigned int token_number)
 {
 	dim3 threads_per_block(THREADS_PER_BLOCK);
@@ -61,13 +64,11 @@ void launch_kernel(unsigned long long *messages_h, unsigned int token_number)
 /*
  *
  */
-extern "C"
+//extern "C"
 int init_cuda(unsigned int t)
 {
 	threads_number = t;
 	size = 25*t*sizeof(unsigned long long); 
-
-	
 
 	return 0;
 }
@@ -76,7 +77,7 @@ int init_cuda(unsigned int t)
 /*
  * Allocate and zero initialize GPU memory
  */
-extern "C"
+//extern "C"
 int alloc_memory()
 {	
 	// Allocate GPU memory buffer 1
@@ -101,7 +102,7 @@ int alloc_memory()
 /*
  *
  */
-extern "C"
+//extern "C"
 int free_memory()
 {
 	// Deallocate GPU memory buffer 1
@@ -116,14 +117,14 @@ int free_memory()
 /*
  *
  */
-extern "C"
+//extern "C" 
 int get_state(unsigned long long *state_h)
 {
 	// Check kernel termination
 	cudaThreadSynchronize();
 
 	// State retrival
-	cutilSafeCall( cudaMemcpy(state_h, state_d, size,cudaMemcpyDeviceToHost) );
+	cutilSafeCall( cudaMemcpy(state_h, state_d, size, cudaMemcpyDeviceToHost) );
 
 	return 0;
 }
