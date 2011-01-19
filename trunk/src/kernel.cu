@@ -42,8 +42,8 @@ __global__ void kernel(unsigned long long *messages_d, unsigned long long *state
 //extern "C"
 void launch_kernel(unsigned long long *messages_h, unsigned int token_number)
 {
-	dim3 threads_per_block(THREADS_PER_BLOCK);
-	int num_blocks = threads_number/THREADS_PER_BLOCK + 1;
+	dim3 threads_per_block(threads_number);
+	int num_blocks = threads_number/THREADS_PER_BLOCK + threads_number%THREADS_PER_BLOCK>0?1:0;
 
 	if(token_number%2 == 0)
 		buffer_d = buffer1_d;
