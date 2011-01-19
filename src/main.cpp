@@ -9,7 +9,7 @@
 int threadsNumber = -1;
 int messageLenght = -1;
 bool debug = false;
-long long unsigned *hash;
+unsigned long long *hash;
 
 void printUsage();
 int startKernel();
@@ -132,6 +132,10 @@ int startKernel(){
 		launch_kernel(messages,l); //launch the kernel
 		std::cout << "Kernel launched" << std::endl;
 	}
+
+	//allocate memory for the hash
+	hash = (unsigned long long*)malloc(25*threadsNumber*sizeof(unsigned long long));
+	
 	
 	//retrival of the computed hashes
 	get_state(hash);
@@ -140,6 +144,8 @@ int startKernel(){
 	free_memory();
 	
 	//print the hashes
+	std::cout << "Hashes:" << std::endl;
+	
 	for(unsigned int n=0; n< threadsNumber; n++)
 		for(unsigned int i=0;i<25;i++){
 			std::cout << messages[i+25*n] << std::endl;
