@@ -148,7 +148,7 @@ int startKernel(){
 	
 	for(unsigned int n=0; n< threadsNumber; n++)
 		for(unsigned int i=0;i<25;i++){
-			std::cout << messages[i+25*n] << std::endl;
+			std::cout << hash[i+25*n] << std::endl;
 		}
 	
 	

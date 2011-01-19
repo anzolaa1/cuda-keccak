@@ -22,7 +22,7 @@ cuda-keccak: $(OBJECTS)
 clean:
 	rm -f *.o *.linkinfo cuda-keccak
 
-%.o: %.c
+%.o: %.cpp
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 %.o: %.cu
