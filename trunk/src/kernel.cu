@@ -13,7 +13,7 @@
 #define ROL64(a, offset) ((offset != 0) ? ((((UINT64)a) >> (0-offset)) ^ (((UINT64)a) >> (64-offset))) : a)
 
 
-typedef unsigned long long int UINT64;
+
 
 
 UINT64 *buffer_d;
@@ -122,6 +122,7 @@ int init_cuda(unsigned int t, UINT64 *krc, unsigned int *kro)
 	
 	return 0;
 }
+
 
 
 /*

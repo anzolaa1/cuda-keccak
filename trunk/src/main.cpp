@@ -5,15 +5,20 @@
 #include <time.h>
 
 #include "kernel.h"
-
+extern "C"{
+	#include "KeccakF1600reference.h"
+	#include "displayIntermediateValues.h"
+}
 int threadsNumber = -1;
 int messageLenght = -1;
 bool debug = false;
+bool cpu = false;
 unsigned long long *hash;
+
 
 void printUsage();
 int startKernel();
-
+int startCpu();
 
 
 int main(int argc, char** argv){
@@ -46,7 +51,7 @@ int main(int argc, char** argv){
 					return -1;
 				}
 				continue;
-			
+			 
 		}
 		if(strcmp(argv[i],"-h")==0){ //help
 			printUsage();
@@ -55,6 +60,11 @@ int main(int argc, char** argv){
 		
 		if(strcmp(argv[i],"-d")==0){ //debug mode
 			debug = true;
+			continue;
+		}
+		
+		if(strcmp(argv[i],"-c")==0){ //debug mode
+			cpu = true;
 			continue;
 		}
 		
@@ -76,15 +86,31 @@ int main(int argc, char** argv){
 		printUsage();
 		return -1;
 	}
-	
 	return startKernel();
 }
 
+unsigned long long roundCostant[23];
+unsigned int rhoOffsets[25];
+
 
 int startKernel(){
-	init_cuda(threadsNumber); 
-	alloc_memory();
+	if(!cpu){
+		init_cuda(threadsNumber,roundCostant,rhoOffsets); 
+		alloc_memory();
+	}else{
+		KeccakInitialize();
+		FILE* f = fopen("intermediateResultCpu.txt","w");
+		if(f)
+			displaySetIntermediateValueFile(f);
+		else
+			std::cout << "ERROR OPENING OUTPUT FILE" <<std::endl;
+	}
 	
+	//allocate memory for the hash
+	hash = (unsigned long long*)malloc(25*threadsNumber*sizeof(unsigned long long));
+	if(cpu){
+		KeccakInitializeState((unsigned char*)hash);
+	}
 	unsigned long long *messages;
 	srand( time(NULL) );	
 	//initializaiotn of the ptr array to 0
@@ -128,21 +154,22 @@ int startKernel(){
 			std::cout << "Initialization of the messages with all zeros" << std::endl;			
 			memset(messages,0,25*threadsNumber*sizeof(unsigned long long));
 		}
-		
-		launch_kernel(messages,l); //launch the kernel
-		std::cout << "Kernel launched" << std::endl;
+		if(!cpu){
+			launch_kernel(messages,l); //launch the kernel
+			std::cout << "Kernel launched" << std::endl;
+		}else{
+			KeccakAbsorb((unsigned char *)hash, (unsigned char *)messages, 25);
+		}
 	}
 
-	//allocate memory for the hash
-	hash = (unsigned long long*)malloc(25*threadsNumber*sizeof(unsigned long long));
 	
+	if(!cpu){
+		//retrival of the computed hashes
+		get_state(hash);
 	
-	//retrival of the computed hashes
-	get_state(hash);
-	
-	//free the gpu memory
-	free_memory();
-	
+		//free the gpu memory
+		free_memory();
+	}
 	//print the hashes
 	std::cout << "Hashes:" << std::endl;
 	
@@ -150,7 +177,6 @@ int startKernel(){
 		for(unsigned int i=0;i<25;i++){
 			std::cout << hash[i+25*n] << std::endl;
 		}
-	
 	
 	
 	
@@ -166,6 +192,7 @@ void printUsage(){
 	cout << "h:		print this message" << endl;
 	cout << "n:		number of threads to start" << endl;
 	cout << "l:		lenght of the messages to process (lenght = l*64*25 bit)" << endl;
+	cout << "c:		run in cpu mode" << endl;
 	cout << "d:		run in debug mode, in debug mode all the messages\n		are set to a series of zeros" << endl;
 	cout << endl;
 }
