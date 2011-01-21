@@ -13,9 +13,6 @@
 #define ROL64(a, offset) ((offset != 0) ? ((((UINT64)a) >> (0-offset)) ^ (((UINT64)a) >> (64-offset))) : a)
 
 
-
-
-
 UINT64 *buffer_d;
 UINT64 *buffer1_d;
 UINT64 *buffer2_d;
@@ -112,7 +109,7 @@ void launch_kernel(unsigned long long *messages_h, unsigned int token_number)
 int init_cuda(unsigned int t, UINT64 *krc, unsigned int *kro)
 {
 	threads_number = t;
-	size = 25*t*sizeof(unsigned long long); 
+	size = 25*t*sizeof(UINT64); 
 	
 	// Initialize round constants
 	cutilSafeCall( cudaMemcpyToSymbol("KeccakRoundConstants", krc, ROUNDS_NUMBER*sizeof(UINT64), 0, cudaMemcpyHostToDevice) );
@@ -166,10 +163,12 @@ int free_memory()
 /*
  *
  */
-int get_state(unsigned long long *state_h)
+int get_state(UINT64 *state_h)
 {
 	// Check kernel termination
-	cudaThreadSynchronize();
+	cudaError_t error = cudaThreadSynchronize();
+	
+	printf("Error code = %d\n", error);
 
 	// State retrival
 	cutilSafeCall( cudaMemcpy(state_h, state_d, size, cudaMemcpyDeviceToHost) );
