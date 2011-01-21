@@ -1,4 +1,5 @@
-CC=g++
+CC=gcc
+CPP=g++
 
 CUDAROOT=$(CUDA_HOME)
 CUDASDKROOT=$(CUDA_SDK_HOME)
@@ -13,16 +14,22 @@ CFLAGS= -g -L$(CUDAROOT)/lib  \
 
 
 OBJECTS =\
+      main.o \
       kernel.o \
-      main.o 
+      KeccakF1600reference.o \
+      displayIntermediateValues.o
+      
 	
 cuda-keccak: $(OBJECTS)
-	$(CC) $(CFLAGS)  -o $@ $^ -lcuda -lcutil_x86_64 -lcudart
+	$(CPP) $(CFLAGS)  -o $@ $^ -lcuda -lcutil_x86_64 -lcudart
 
 clean:
 	rm -f *.o *.linkinfo cuda-keccak
 
 %.o: %.cpp
+	$(CPP) $(CFLAGS) -c -o $@ $<
+
+%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 %.o: %.cu
