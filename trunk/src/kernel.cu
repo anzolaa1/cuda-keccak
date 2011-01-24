@@ -5,12 +5,20 @@
 #include "kernel.h"
 
 
+#define __DEBUG_MODE_ON__
 #define THREADS_PER_BLOCK 64
 #define ROUNDS_NUMBER 24
 #define WORDS_NUMBER 25
 
 #define index(x, y) (((x)%5)+5*((y)%5))
-#define ROL64(a, offset) ((offset != 0) ? ((((UINT64)a) >> (0-offset)) ^ (((UINT64)a) >> (64-offset))) : a)
+
+// NVCC Bug
+//#define ROL64(a, offset) ((offset != 0) ? ((((UINT64)a) << offset) ^ (((UINT64)a) >> (64-offset))) : a)
+__device__ inline UINT64 ROL64(UINT64 a, unsigned int offset)
+{
+	const int _offset = offset;
+	return ((offset != 0) ? ((a << _offset) ^ (a >> (64-offset))) : a);
+}
 
 
 UINT64 *buffer_d;
@@ -20,6 +28,7 @@ UINT64 *state_d;
 
 unsigned int threads_number;
 size_t size;
+size_t size_actual;
 
 
 __constant__ UINT64 KeccakRoundConstants[ROUNDS_NUMBER];
@@ -36,10 +45,10 @@ __global__ void kernel(UINT64 *messages_d, UINT64 *state_d)
 	UINT64 A[WORDS_NUMBER], tempA[WORDS_NUMBER], C[5], D[5];
 	
 	// Absorbing
-	for(i = 0; i < WORDS_NUMBER * 8; i++)
-        A[i] = state_d[offset + i] ^ messages_d[offset + i];
+	for(i = 0; i < WORDS_NUMBER; i++)
+        	A[i] = state_d[offset + i] ^ messages_d[offset + i];
 
-    for(round_number = 0; round_number < ROUNDS_NUMBER; round_number++) {
+    	for(round_number = 0; round_number < ROUNDS_NUMBER; round_number++) {
 		// Theta
 		for(x=0; x<5; x++) {
 			C[x] = 0; 
@@ -51,30 +60,30 @@ __global__ void kernel(UINT64 *messages_d, UINT64 *state_d)
 			for(y=0; y<5; y++)
 				A[index(x, y)] ^= D[(x+1)%5] ^ C[(x+4)%5];
 
-        // Rho
+        	// Rho
 		for(x=0; x<5; x++) 
 			for(y=0; y<5; y++)
 				A[index(x, y)] = ROL64(A[index(x, y)], KeccakRhoOffsets[index(x, y)]);
 
 		// Pi
-        for(x=0; x<5; x++) for(y=0; y<5; y++)
+        	for(x=0; x<5; x++) for(y=0; y<5; y++)
 			tempA[index(x, y)] = A[index(x, y)];
 		for(x=0; x<5; x++) for(y=0; y<5; y++)
 			A[index(0*x+1*y, 2*x+3*y)] = tempA[index(x, y)];
 		
-        // Chi
-        for(y=0; y<5; y++) { 
+        	// Chi
+        	for(y=0; y<5; y++) { 
 			for(x=0; x<5; x++)
 				C[x] = A[index(x, y)] ^ ((~A[index(x+1, y)]) & A[index(x+2, y)]);
 			for(x=0; x<5; x++)
 				A[index(x, y)] = C[x];
 		}
 		
-        // Iota
+        	// Iota
 		A[index(0, 0)] ^= KeccakRoundConstants[round_number];
     }
     
-    for(i = 0; i < WORDS_NUMBER * 8; i++)
+    for(i = 0; i < WORDS_NUMBER; i++)
         state_d[offset + i] = A[i];
 }
 
@@ -84,8 +93,8 @@ __global__ void kernel(UINT64 *messages_d, UINT64 *state_d)
  */
 void launch_kernel(unsigned long long *messages_h, unsigned int token_number)
 {
-	dim3 threads_per_block(threads_number);
-	int num_blocks = threads_number/THREADS_PER_BLOCK + threads_number%THREADS_PER_BLOCK>0?1:0;
+	dim3 threads_per_block(THREADS_PER_BLOCK);
+	int num_blocks = threads_number/THREADS_PER_BLOCK;
 
 	if(token_number%2 == 0)
 		buffer_d = buffer1_d;
@@ -93,7 +102,7 @@ void launch_kernel(unsigned long long *messages_h, unsigned int token_number)
 		buffer_d = buffer2_d;
 
 	// Copy messages_h into buffer_d
-	cutilSafeCall( cudaMemcpy(buffer_d, messages_h, size,cudaMemcpyHostToDevice) );
+	cutilSafeCall( cudaMemcpy(buffer_d, messages_h, size_actual, cudaMemcpyHostToDevice) );
 
 	// Wait old kernel termination
 	cudaThreadSynchronize();
@@ -108,8 +117,15 @@ void launch_kernel(unsigned long long *messages_h, unsigned int token_number)
  */
 int init_cuda(unsigned int t, UINT64 *krc, unsigned int *kro)
 {
-	threads_number = t;
-	size = 25*t*sizeof(UINT64); 
+	// Set the number of actual threads
+	// In order to avoid control instructions inside the kernel, the number of threads is chooses...
+	threads_number = ((t%THREADS_PER_BLOCK == 0) ? (t) : (t/THREADS_PER_BLOCK + 1)*THREADS_PER_BLOCK);
+
+	// Meaningfull part of the memory
+	size_actual = 25*t*sizeof(UINT64); 
+
+	// Whole memory
+	size = 25*threads_number*sizeof(UINT64); 
 	
 	// Initialize round constants
 	cutilSafeCall( cudaMemcpyToSymbol("KeccakRoundConstants", krc, ROUNDS_NUMBER*sizeof(UINT64), 0, cudaMemcpyHostToDevice) );
@@ -152,8 +168,13 @@ int alloc_memory()
 int free_memory()
 {
 	// Deallocate GPU memory buffer 1
+	cudaFree(buffer1_d);
+
 	// Deallocate GPU memory buffer 2
+	cudaFree(buffer2_d);
+
 	// Deallocate GPU memory state
+	cudaFree(state_d);
 
 	return 0;
 
@@ -167,11 +188,13 @@ int get_state(UINT64 *state_h)
 {
 	// Check kernel termination
 	cudaError_t error = cudaThreadSynchronize();
-	
-	printf("Error code = %d\n", error);
+
+	#ifdef __DEBUG_MODE_ON__
+	printf("*\nFunction:\tget_state\nPhase:\t\tChecking kernel termination\nError code:\t%d\n*\n", error);
+	#endif
 
 	// State retrival
-	cutilSafeCall( cudaMemcpy(state_h, state_d, size, cudaMemcpyDeviceToHost) );
+	cutilSafeCall( cudaMemcpy(state_h, state_d, size_actual, cudaMemcpyDeviceToHost) );
 
 	return 0;
 }
