@@ -72,7 +72,7 @@ void KeccakPermutation(unsigned char *state)
     UINT64 stateAsWords[KeccakPermutationSize/64];
 #endif
 */
-    displayStateAsBytes(1, "Input of permutation", state);
+    //displayStateAsBytes(1, "Input of permutation", state);
 //#if (PLATFORM_BYTE_ORDER == IS_LITTLE_ENDIAN)
     KeccakPermutationOnWords((UINT64*)state);
 /*#else
@@ -80,7 +80,7 @@ void KeccakPermutation(unsigned char *state)
     KeccakPermutationOnWords(stateAsWords);
     fromWordsToBytes(state, stateAsWords);
 #endif*/
-    displayStateAsBytes(1, "State after permutation", state);
+    //displayStateAsBytes(1, "State after permutation", state);
 }
 
 void KeccakPermutationAfterXor(unsigned char *state, const unsigned char *data, unsigned int dataLengthInBytes)
@@ -96,25 +96,25 @@ void KeccakPermutationOnWords(UINT64 *state)
 {
     unsigned int i;
 
-    displayStateAsWords(3, "Same, as words", state);
+    //displayStateAsWords(3, "Same, as words", state);
 
     for(i=0; i<nrRounds; i++) {
-        displayRoundNumber(3, i);
+        //displayRoundNumber(3, i);
 
         theta(state);
-        displayStateAsWords(3, "After theta", state);
+        //displayStateAsWords(3, "After theta", state);
 
         rho(state);
-        displayStateAsWords(3, "After rho", state);
+        //displayStateAsWords(3, "After rho", state);
 
         pi(state);
-        displayStateAsWords(3, "After pi", state);
+        //displayStateAsWords(3, "After pi", state);
 
         chi(state);
-        displayStateAsWords(3, "After chi", state);
+        //displayStateAsWords(3, "After chi", state);
 
         iota(state, i);
-        displayStateAsWords(3, "After iota", state);
+        //displayStateAsWords(3, "After iota", state);
     }
 }
 
@@ -215,6 +215,12 @@ void KeccakInitializeRhoOffsets()
         y = newY;
     }
 }
+
+
+
+
+
+
 
 void KeccakInitialize()
 {

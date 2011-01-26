@@ -4,7 +4,11 @@
 #include <stdio.h>
 #include <time.h>
 
+#define ind(x, y) (((x)%5)+5*((y)%5))
+
+
 #include "kernel.h"
+#include "costants.h"
 extern "C"{
 	#include "KeccakF1600reference.h"
 	#include "displayIntermediateValues.h"
@@ -19,6 +23,9 @@ unsigned long long *hash;
 void printUsage();
 int startKernel();
 int startCpu();
+void InitializeRhoOffsets(unsigned int* array);
+void InitRoundConstants(unsigned long long* array);
+int LFSR(unsigned char *LFSR);
 
 
 int main(int argc, char** argv){
@@ -89,13 +96,16 @@ int main(int argc, char** argv){
 	return startKernel();
 }
 
-unsigned long long roundCostant[23];
+unsigned long long roundConstant[24];
 unsigned int rhoOffsets[25];
 
 
 int startKernel(){
 	if(!cpu){
-		init_cuda(threadsNumber,roundCostant,rhoOffsets); 
+		//TODO init round and rhoOffset
+		InitializeRhoOffsets(rhoOffsets);
+		InitRoundConstants(roundConstant);
+		init_cuda(threadsNumber,roundConstant,rhoOffsets); 
 		alloc_memory();
 	}else{
 		KeccakInitialize();
@@ -151,13 +161,14 @@ int startKernel(){
 					messages[i] = rand();
 			}
 		}else{
-			std::cout << "Initialization of the messages with all zeros" << std::endl;			
+			//std::cout << "Initialization of the messages with all zeros" << std::endl;			
 			memset(messages,0,25*threadsNumber*sizeof(unsigned long long));
 		}
 		if(!cpu){
 			launch_kernel(messages,l); //launch the kernel
 			std::cout << "Kernel launched" << std::endl;
 		}else{
+			std::cout << "Absorb number: " << l << std::endl;
 			KeccakAbsorb((unsigned char *)hash, (unsigned char *)messages, 25);
 		}
 	}
@@ -182,6 +193,53 @@ int startKernel(){
 	
 	return 0;
 }
+
+
+
+void InitializeRhoOffsets(unsigned int* array)
+{
+    unsigned int x, y, t, newX, newY;
+
+    array[ind(0, 0)] = 0;
+    x = 1;
+    y = 0;
+    for(t=0; t<24; t++) {
+        array[ind(x, y)] = ((t+1)*(t+2)/2) % 64;
+        newX = (0*x+1*y) % 5;
+        newY = (2*x+3*y) % 5;
+        x = newX;
+        y = newY;
+    }
+}
+
+
+void InitRoundConstants(unsigned long long* array)
+{
+    unsigned char LFSRstate = 0x01;
+    unsigned int i, j, bitPosition;
+
+    for(i=0; i<24; i++) {
+        array[i] = 0;
+        for(j=0; j<7; j++) {
+            bitPosition = (1<<j)-1; //2^j-1
+            if (LFSR(&LFSRstate))
+                array[i] ^= (unsigned long long)1<<bitPosition;
+        }
+    }
+}
+
+int LFSR(unsigned char *LFSR)
+{
+    int result = ((*LFSR) & 0x01) != 0;
+    if (((*LFSR) & 0x80) != 0)
+        // Primitive polynomial over GF(2): x^8+x^6+x^5+x^4+1
+        (*LFSR) = ((*LFSR) << 1) ^ 0x71;
+    else
+        (*LFSR) <<= 1;
+    return result;
+}
+
+
 
 
 using namespace std;

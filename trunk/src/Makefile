@@ -5,10 +5,10 @@ CUDAROOT=$(CUDA_HOME)
 CUDASDKROOT=$(CUDA_SDK_HOME)
 NVCC=$(CUDA_HOME)/bin/nvcc
 
-NVCFLAGS= -G -g -I $(CUDASDKROOT)/C/common/inc \
+NVCFLAGS=  -I $(CUDASDKROOT)/C/common/inc \
 	  -I $(CUDASDKROOT)/include
 
-CFLAGS= -g -L$(CUDAROOT)/lib  \
+CFLAGS= -pg -O2 -L$(CUDAROOT)/lib  \
 	-L$(CUDAROOT)/lib64  \
 	-L$(CUDASDKROOT)/C/lib
 
