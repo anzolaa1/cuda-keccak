@@ -6,6 +6,8 @@
 
 
 #define __DEBUG_MODE_ON__
+#define __BENCHMARK_MODE_ON__
+
 #define THREADS_PER_BLOCK 64
 #define ROUNDS_NUMBER 24
 #define WORDS_NUMBER 25
@@ -27,6 +29,7 @@ UINT64 *buffer2_d;
 UINT64 *state_d;
 
 unsigned int threads_number;
+unsigned int timer;
 size_t size;
 size_t size_actual;
 
@@ -107,7 +110,14 @@ void launch_kernel(unsigned long long *messages_h, unsigned int token_number)
 	// Wait old kernel termination
 	cudaThreadSynchronize();
 
-	// launch new kernel
+	// Launch timer
+	if(token_number == 0)
+	{
+	//	cutilCheckError(cutResetTimer(timer));
+	//	cutilCheckError(cutStartTimer(timer));
+	}
+
+	// Launch new kernel
 	kernel<<<num_blocks, threads_per_block>>>(buffer_d, state_d);
 }
 
@@ -117,6 +127,25 @@ void launch_kernel(unsigned long long *messages_h, unsigned int token_number)
  */
 int init_cuda(unsigned int t, UINT64 *krc, unsigned int *kro)
 {
+	int dev_ID;
+	cudaDeviceProp device_prop;
+
+	// Get best device properties
+	dev_ID = cutGetMaxGflopsDeviceId();
+	cudaGetDeviceProperties(&device_prop, dev_ID);
+	#ifdef __DEBUG_MODE_ON__
+	printf("*\nMax Gflops Device: \"%s\"\n", device_prop.name);
+	printf("\tCUDA Capability:                               %d.%d\n", device_prop.major, device_prop.minor);
+	printf("\tTotal amount of Global Memory:                 %llu bytes\n", (UINT64) device_prop.totalGlobalMem);
+	//printf("\tMultiprocessor x Cores/MP = Cores:             %d (MP) x %d (Cores/MP) = %d (Cores)\n", device_prop.multiProcessorCount, ConvertSMVer2Cores(deviceProp.major, deviceProp.minor), ConvertSMVer2Cores(deviceProp.major, deviceProp.minor) * deviceProp.multiProcessorCount);
+	printf("\tTotal number of registers available per block: %d\n", device_prop.regsPerBlock);
+	printf("\tMaximum number of threads per block:           %d\n", device_prop.maxThreadsPerBlock);
+	printf("*\n");
+	#endif
+
+	// Set device
+        cudaSetDevice(dev_ID);
+
 	// Set the number of actual threads
 	// In order to avoid control instructions inside the kernel, the number of threads is chooses...
 	threads_number = ((t%THREADS_PER_BLOCK == 0) ? (t) : (t/THREADS_PER_BLOCK + 1)*THREADS_PER_BLOCK);
@@ -168,13 +197,13 @@ int alloc_memory()
 int free_memory()
 {
 	// Deallocate GPU memory buffer 1
-	cudaFree(buffer1_d);
+	cutilSafeCall(cudaFree(buffer1_d));
 
 	// Deallocate GPU memory buffer 2
-	cudaFree(buffer2_d);
+	cutilSafeCall(cudaFree(buffer2_d));
 
 	// Deallocate GPU memory state
-	cudaFree(state_d);
+	cutilSafeCall(cudaFree(state_d));
 
 	return 0;
 
@@ -187,10 +216,17 @@ int free_memory()
 int get_state(UINT64 *state_h)
 {
 	// Check kernel termination
-	cudaError_t error = cudaThreadSynchronize();
+	cutilSafeCall(cudaThreadSynchronize());
+
+	// Stop timer
+	//cutilCheckError(cutStopTimer(timer));
 
 	#ifdef __DEBUG_MODE_ON__
-	printf("*\nFunction:\tget_state\nPhase:\t\tChecking kernel termination\nError code:\t%d\n*\n", error);
+	//printf("*\nFunction:\tget_state\nPhase:\t\tChecking kernel termination\nError code:\t%d\n*\n", error);
+	#endif
+
+	#ifdef __BENCHMARK_MODE_ON__
+	//printf("*\nGPU time: %g\n*\n", cutGetTimerValue(timer));
 	#endif
 
 	// State retrival
