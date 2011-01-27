@@ -29,9 +29,11 @@ UINT64 *buffer2_d;
 UINT64 *state_d;
 
 unsigned int threads_number;
-unsigned int timer;
 size_t size;
 size_t size_actual;
+
+cudaEvent_t startEvent;
+cudaEvent_t stopEvent;
 
 
 __constant__ UINT64 KeccakRoundConstants[ROUNDS_NUMBER];
@@ -113,8 +115,7 @@ void launch_kernel(unsigned long long *messages_h, unsigned int token_number)
 	// Launch timer
 	if(token_number == 0)
 	{
-	//	cutilCheckError(cutResetTimer(timer));
-	//	cutilCheckError(cutStartTimer(timer));
+		cutilSafeCall(cudaEventRecord(startEvent, 0));
 	}
 
 	// Launch new kernel
@@ -161,6 +162,10 @@ int init_cuda(unsigned int t, UINT64 *krc, unsigned int *kro)
 	
 	// Initialize rho offsets
 	cutilSafeCall( cudaMemcpyToSymbol("KeccakRhoOffsets", kro, WORDS_NUMBER*sizeof(unsigned int), 0, cudaMemcpyHostToDevice) );
+
+	// Create timers
+	cutilSafeCall( cudaEventCreate(&startEvent) );
+      	cutilSafeCall( cudaEventCreate(&stopEvent) );
 	
 	return 0;
 }
@@ -215,18 +220,18 @@ int free_memory()
  */
 int get_state(UINT64 *state_h)
 {
+	float milliseconds;
+
 	// Check kernel termination
 	cutilSafeCall(cudaThreadSynchronize());
 
 	// Stop timer
-	//cutilCheckError(cutStopTimer(timer));
-
-	#ifdef __DEBUG_MODE_ON__
-	//printf("*\nFunction:\tget_state\nPhase:\t\tChecking kernel termination\nError code:\t%d\n*\n", error);
-	#endif
+	cutilSafeCall(cudaEventRecord(stopEvent, 0));
+	cutilSafeCall(cudaEventSynchronize(stopEvent));
+	cutilSafeCall( cudaEventElapsedTime(&milliseconds, startEvent, stopEvent));
 
 	#ifdef __BENCHMARK_MODE_ON__
-	//printf("*\nGPU time: %g\n*\n", cutGetTimerValue(timer));
+	printf("*\nGPU time: %.3f ms\n*\n", milliseconds);
 	#endif
 
 	// State retrival
