@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#include <cutil_inline.h>
 
 #define ind(x, y) (((x)%5)+5*((y)%5))
 
@@ -18,7 +19,7 @@ int messageLenght = -1;
 bool debug = false;
 bool cpu = false;
 unsigned long long *hash;
-
+unsigned int timer;
 
 void printUsage();
 int startKernel();
@@ -108,6 +109,8 @@ int startKernel(){
 		init_cuda(threadsNumber,roundConstant,rhoOffsets); 
 		alloc_memory();
 	}else{
+		cutilCheckError(cutCreateTimer(&timer));
+		cutilCheckError(cutStartTimer(timer));
 		KeccakInitialize();
 		FILE* f = fopen("intermediateResultCpu.txt","w");
 		if(f)
@@ -156,7 +159,7 @@ int startKernel(){
 		
 		//random initialization of the new messages	(in debug mode all is initialize to zero)
 		if(!debug){
-			std::cout << "Initialization of the messages with random values" << std::endl;
+			//std::cout << "Initialization of the messages with random values" << std::endl;
 			for(unsigned int i=0;i<threadsNumber*25;i++){
 					messages[i] = rand();
 			}
@@ -166,9 +169,9 @@ int startKernel(){
 		}
 		if(!cpu){
 			launch_kernel(messages,l); //launch the kernel
-			std::cout << "Kernel launched" << std::endl;
+			//std::cout << "Kernel launched" << std::endl;
 		}else{
-			std::cout << "Absorb number: " << l << std::endl;
+			//std::cout << "Absorb number: " << l << std::endl;
 			KeccakAbsorb((unsigned char *)hash, (unsigned char *)messages, 25);
 		}
 	}
@@ -180,14 +183,21 @@ int startKernel(){
 	
 		//free the gpu memory
 		free_memory();
+	}else{
+		cutilCheckError(cutStopTimer(timer));
+		float milliseconds = cutGetTimerValue(timer);
+		cutilCheckError(cutDeleteTimer(timer));
+		std::cout << "Tempo totale: ";
+		printf("%f ms\n",milliseconds);
 	}
-	//print the hashes
-	std::cout << "Hashes:" << std::endl;
 	
-	for(unsigned int n=0; n< threadsNumber; n++)
+	//print the hashes
+	//std::cout << "Hashes:" << std::endl;
+	
+	/*for(unsigned int n=0; n< threadsNumber; n++)
 		for(unsigned int i=0;i<25;i++){
 			std::cout << hash[i+25*n] << std::endl;
-		}
+		}*/
 	
 	
 	

@@ -6,13 +6,15 @@ CUDASDKROOT=$(CUDA_SDK_HOME)
 NVCC=$(CUDA_HOME)/bin/nvcc
 
 NVCFLAGS= -g -G \
-	  --ptxas-options=-v \
+          -O2 \
 	  -I $(CUDASDKROOT)/C/common/inc \
 	  -I $(CUDASDKROOT)/include
 
 CFLAGS= -g -O2 -L$(CUDAROOT)/lib  \
 	-L$(CUDAROOT)/lib64  \
-	-L$(CUDASDKROOT)/C/lib
+	-L$(CUDASDKROOT)/C/lib \
+	-I $(CUDASDKROOT)/C/common/inc \
+	-I $(CUDA_HOME)/include
 
 
 OBJECTS =\
