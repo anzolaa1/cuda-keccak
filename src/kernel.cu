@@ -52,7 +52,7 @@ __global__ void kernel(UINT64 *messages_d, UINT64 *state_d)
 	// Absorbing
 	for(i = 0; i < WORDS_NUMBER; i++)
         	A[i] = state_d[offset + i] ^ messages_d[offset + i];
-
+		/*
     	for(round_number = 0; round_number < ROUNDS_NUMBER; round_number++) {
 		// Theta
 		for(x=0; x<5; x++) {
@@ -87,7 +87,7 @@ __global__ void kernel(UINT64 *messages_d, UINT64 *state_d)
         	// Iota
 		A[index(0, 0)] ^= KeccakRoundConstants[round_number];
     }
-    
+    */
     for(i = 0; i < WORDS_NUMBER; i++)
         state_d[offset + i] = A[i];
 }
@@ -105,10 +105,11 @@ __global__ void kernel_optimixed(UINT64 *messages_d, UINT64 *state_d)
 	// Absorbing
 	for(x = 0; x < WORDS_NUMBER; x++)
         	A[x] = state_d[offset + x] ^ messages_d[offset + x];
-
+        	
+		
     	for(round_number = 0; round_number < ROUNDS_NUMBER; round_number++) {
 		// Theta
-		for(x=0; x<5; x++) {
+		/*for(x=0; x<5; x++) {
 			C[x] = 0; 
 			for(y=0; y<5; y++) 
 				C[x] = C[x] ^ A[index(x, y)];
@@ -117,28 +118,253 @@ __global__ void kernel_optimixed(UINT64 *messages_d, UINT64 *state_d)
 		for(x=0; x<5; x++)
 			for(y=0; y<5; y++)
 				A[index(x, y)] = A[index(x,y)] ^ D[(x+1)%5] ^ C[(x+4)%5];
-
+		*/
+		
+		//THETA unrolled
+		//x = 0
+		C[0] = 0;
+		C[0] = C[0] ^ A[0];
+		C[0] = C[0] ^ A[5];
+		C[0] = C[0] ^ A[10];
+		C[0] = C[0] ^ A[15];
+		C[0] = C[0] ^ A[20];
+		D[0] = ROL64(C[0], 1);
+		//x = 1
+		C[1] = 0;
+		C[1] = C[1] ^ A[1];
+		C[1] = C[1] ^ A[6];
+		C[1] = C[1] ^ A[11];
+		C[1] = C[1] ^ A[16];
+		C[1] = C[1] ^ A[21];
+		D[1] = ROL64(C[1], 1);
+		// x = 2
+		C[2] = 0;
+		C[2] = C[2] ^ A[2];
+		C[2] = C[2] ^ A[7];
+		C[2] = C[2] ^ A[12];
+		C[2] = C[2] ^ A[17];
+		C[2] = C[2] ^ A[22];
+		D[2] = ROL64(C[2], 1);
+		// x = 3
+		C[3] = 0;
+		C[3] = C[3] ^ A[3];
+		C[3] = C[3] ^ A[8];
+		C[3] = C[3] ^ A[13];
+		C[3] = C[3] ^ A[18];
+		C[3] = C[3] ^ A[23];
+		D[3] = ROL64(C[3], 1);
+		// x = 4
+		C[4] = 0;
+		C[4] = C[4] ^ A[4];
+		C[4] = C[4] ^ A[9];
+		C[4] = C[4] ^ A[14];
+		C[4] = C[4] ^ A[19];
+		C[4] = C[4] ^ A[24];
+		D[4] = ROL64(C[4], 1);
+		
+		A[0] = A[0] ^ D[1] ^ C[4];
+		A[5] = A[5] ^ D[1] ^ C[4];
+		A[10] = A[10] ^ D[1] ^ C[4];
+		A[15] = A[15] ^ D[1] ^ C[4];
+		A[20] = A[20] ^ D[1] ^ C[4];
+		
+		A[index(1, 0)] = A[index(1,0)] ^ D[2] ^ C[0];
+		A[index(1, 1)] = A[index(1,1)] ^ D[2] ^ C[0];
+		A[index(1, 2)] = A[index(1,2)] ^ D[2] ^ C[0];
+		A[index(1, 3)] = A[index(1,3)] ^ D[2] ^ C[0];
+		A[index(1, 4)] = A[index(1,4)] ^ D[2] ^ C[0];
+		
+		A[index(2, 0)] = A[index(2,0)] ^ D[3] ^ C[1];
+		A[index(2, 1)] = A[index(2,1)] ^ D[3] ^ C[1];
+		A[index(2, 2)] = A[index(2,2)] ^ D[3] ^ C[1];
+		A[index(2, 3)] = A[index(2,3)] ^ D[3] ^ C[1];
+		A[index(2, 4)] = A[index(2,4)] ^ D[3] ^ C[1];
+		
+		A[index(3, 0)] = A[index(3,0)] ^ D[4] ^ C[2];
+		A[index(3, 1)] = A[index(3,1)] ^ D[4] ^ C[2];
+		A[index(3, 2)] = A[index(3,2)] ^ D[4] ^ C[2];
+		A[index(3, 3)] = A[index(3,3)] ^ D[4] ^ C[2];
+		A[index(3, 4)] = A[index(3,4)] ^ D[4] ^ C[2];
+		
+		A[index(4, 0)] = A[index(4,0)] ^ D[0] ^ C[3];
+		A[index(4, 1)] = A[index(4,1)] ^ D[0] ^ C[3];
+		A[index(4, 2)] = A[index(4,2)] ^ D[0] ^ C[3];
+		A[index(4, 3)] = A[index(4,3)] ^ D[0] ^ C[3];
+		A[index(4, 4)] = A[index(4,4)] ^ D[0] ^ C[3];
         	// Rho
-		for(x=0; x<5; x++) 
+		/*for(x=0; x<5; x++) 
 			for(y=0; y<5; y++)
 				A[index(x, y)] = ROL64(A[index(x, y)], KeccakRhoOffsets[index(x, y)]);
-
-		// Pi
-        	for(x=0; x<5; x++) for(y=0; y<5; y++)
-			tempA[index(x, y)] = A[index(x, y)];
-		for(x=0; x<5; x++) for(y=0; y<5; y++)
-			A[index(0*x+1*y, 2*x+3*y)] = tempA[index(x, y)];
+		*/
 		
-        	// Chi
-        	for(y=0; y<5; y++) { 
+		
+		//RHO UNROLLED		
+		A[index(0, 0)] = ROL64(A[index(0, 0)], KeccakRhoOffsets[index(0, 0)]);
+		A[index(0, 1)] = ROL64(A[index(0, 1)], KeccakRhoOffsets[index(0, 1)]);
+		A[index(0, 2)] = ROL64(A[index(0, 2)], KeccakRhoOffsets[index(0, 2)]);
+		A[index(0, 3)] = ROL64(A[index(0, 3)], KeccakRhoOffsets[index(0, 3)]);
+		A[index(0, 4)] = ROL64(A[index(0, 4)], KeccakRhoOffsets[index(0, 4)]);
+		
+		A[index(1, 0)] = ROL64(A[index(1, 0)], KeccakRhoOffsets[index(1, 0)]);
+		A[index(1, 1)] = ROL64(A[index(1, 1)], KeccakRhoOffsets[index(1, 1)]);
+		A[index(1, 2)] = ROL64(A[index(1, 2)], KeccakRhoOffsets[index(1, 2)]);
+		A[index(1, 3)] = ROL64(A[index(1, 3)], KeccakRhoOffsets[index(1, 3)]);
+		A[index(1, 4)] = ROL64(A[index(1, 4)], KeccakRhoOffsets[index(1, 4)]);
+
+		A[index(2, 0)] = ROL64(A[index(2, 0)], KeccakRhoOffsets[index(2, 0)]);
+		A[index(2, 1)] = ROL64(A[index(2, 1)], KeccakRhoOffsets[index(2, 1)]);
+		A[index(2, 2)] = ROL64(A[index(2, 2)], KeccakRhoOffsets[index(2, 2)]);
+		A[index(2, 3)] = ROL64(A[index(2, 3)], KeccakRhoOffsets[index(2, 3)]);
+		A[index(2, 4)] = ROL64(A[index(2, 4)], KeccakRhoOffsets[index(2, 4)]);
+		
+		A[index(3, 0)] = ROL64(A[index(3, 0)], KeccakRhoOffsets[index(3, 0)]);
+		A[index(3, 1)] = ROL64(A[index(3, 1)], KeccakRhoOffsets[index(3, 1)]);
+		A[index(3, 2)] = ROL64(A[index(3, 2)], KeccakRhoOffsets[index(3, 2)]);
+		A[index(3, 3)] = ROL64(A[index(3, 3)], KeccakRhoOffsets[index(3, 3)]);
+		A[index(3, 4)] = ROL64(A[index(3, 4)], KeccakRhoOffsets[index(3, 4)]);
+		
+		A[index(4, 0)] = ROL64(A[index(4, 0)], KeccakRhoOffsets[index(4, 0)]);
+		A[index(4, 1)] = ROL64(A[index(4, 1)], KeccakRhoOffsets[index(4, 1)]);
+		A[index(4, 2)] = ROL64(A[index(4, 2)], KeccakRhoOffsets[index(4, 2)]);
+		A[index(4, 3)] = ROL64(A[index(4, 3)], KeccakRhoOffsets[index(4, 3)]);
+		A[index(4, 4)] = ROL64(A[index(4, 4)], KeccakRhoOffsets[index(4, 4)]);
+		
+		/*
+		// Pi
+        for(x=0; x<5; x++)
+        	for(y=0; y<5; y++)
+				tempA[index(x, y)] = A[index(x, y)];
+		for(x=0; x<5; x++)
+			for(y=0; y<5; y++)
+				A[index(0*x+1*y, 2*x+3*y)] = tempA[index(x, y)];
+		*/
+		//UNROLLED PI
+		tempA[index(0, 0)] = A[index(0, 0)];
+		tempA[index(0, 1)] = A[index(0, 1)];
+		tempA[index(0, 2)] = A[index(0, 2)];
+		tempA[index(0, 3)] = A[index(0, 3)];
+		tempA[index(0, 4)] = A[index(0, 4)];
+		
+		tempA[index(1, 0)] = A[index(1, 0)];
+		tempA[index(1, 1)] = A[index(1, 1)];
+		tempA[index(1, 2)] = A[index(1, 2)];
+		tempA[index(1, 3)] = A[index(1, 3)];
+		tempA[index(1, 4)] = A[index(1, 4)];
+		
+		tempA[index(2, 0)] = A[index(2, 0)];
+		tempA[index(2, 1)] = A[index(2, 1)];
+		tempA[index(2, 2)] = A[index(2, 2)];
+		tempA[index(2, 3)] = A[index(2, 3)];
+		tempA[index(2, 4)] = A[index(2, 4)];
+		
+		tempA[index(3, 0)] = A[index(3, 0)];
+		tempA[index(3, 1)] = A[index(3, 1)];
+		tempA[index(3, 2)] = A[index(3, 2)];
+		tempA[index(3, 3)] = A[index(3, 3)];
+		tempA[index(3, 4)] = A[index(3, 4)];
+		
+		tempA[index(4, 0)] = A[index(4, 0)];
+		tempA[index(4, 1)] = A[index(4, 1)];
+		tempA[index(4, 2)] = A[index(4, 2)];
+		tempA[index(4, 3)] = A[index(4, 3)];
+		tempA[index(4, 4)] = A[index(4, 4)];
+		
+		A[index(0, 2*0+3*0)] = tempA[index(0, 0)];
+		A[index(1, 2*0+3*1)] = tempA[index(0, 1)];
+		A[index(2, 2*0+3*2)] = tempA[index(0, 2)];
+		A[index(3, 2*0+3*3)] = tempA[index(0, 3)];
+		A[index(4, 2*0+3*4)] = tempA[index(0, 4)];
+		
+		A[index(0, 2*1+3*0)] = tempA[index(1, 0)];
+		A[index(1, 2*1+3*1)] = tempA[index(1, 1)];
+		A[index(2, 2*1+3*2)] = tempA[index(1, 2)];
+		A[index(3, 2*1+3*3)] = tempA[index(1, 3)];
+		A[index(4, 2*1+3*4)] = tempA[index(1, 4)];
+		
+		A[index(0, 2*2+3*0)] = tempA[index(2, 0)];
+		A[index(1, 2*2+3*1)] = tempA[index(2, 1)];
+		A[index(2, 2*2+3*2)] = tempA[index(2, 2)];
+		A[index(3, 2*2+3*3)] = tempA[index(2, 3)];
+		A[index(4, 2*2+3*4)] = tempA[index(2, 4)];
+		
+		A[index(0, 2*3+3*0)] = tempA[index(3, 0)];
+		A[index(1, 2*3+3*1)] = tempA[index(3, 1)];
+		A[index(2, 2*3+3*2)] = tempA[index(3, 2)];
+		A[index(3, 2*3+3*3)] = tempA[index(3, 3)];
+		A[index(4, 2*3+3*4)] = tempA[index(3, 4)];
+		
+		A[index(0, 2*4+3*0)] = tempA[index(4, 0)];
+		A[index(1, 2*4+3*1)] = tempA[index(4, 1)];
+		A[index(2, 2*4+3*2)] = tempA[index(4, 2)];
+		A[index(3, 2*4+3*3)] = tempA[index(4, 3)];
+		A[index(4, 2*4+3*4)] = tempA[index(4, 4)];
+		
+		
+        // Chi
+        /*for(y=0; y<5; y++) { 
 			for(x=0; x<5; x++)
 				C[x] = A[index(x, y)] ^ ((~A[index(x+1, y)]) & A[index(x+2, y)]);
 			for(x=0; x<5; x++)
 				A[index(x, y)] = C[x];
-		}
+		}*/
 		
-        	// Iota
-		A[index(0, 0)] = A[index(0,0)] ^ KeccakRoundConstants[round_number];
+		C[0] = A[index(0, 0)] ^ ((~A[index(0+1, 0)]) & A[index(0+2, 0)]);
+		C[1] = A[index(1, 0)] ^ ((~A[index(1+1, 0)]) & A[index(1+2, 0)]);
+		C[2] = A[index(2, 0)] ^ ((~A[index(2+1, 0)]) & A[index(2+2, 0)]);
+		C[3] = A[index(3, 0)] ^ ((~A[index(3+1, 0)]) & A[index(3+2, 0)]);
+		C[4] = A[index(4, 0)] ^ ((~A[index(4+1, 0)]) & A[index(4+2, 0)]);
+		A[index(0, 0)] = C[0];
+		A[index(1, 0)] = C[1];
+		A[index(2, 0)] = C[2];
+		A[index(3, 0)] = C[3];
+		A[index(4, 0)] = C[4];
+		
+		C[0] = A[index(0, 1)] ^ ((~A[index(0+1, 1)]) & A[index(0+2, 1)]);
+		C[1] = A[index(1, 1)] ^ ((~A[index(1+1, 1)]) & A[index(1+2, 1)]);
+		C[2] = A[index(2, 1)] ^ ((~A[index(2+1, 1)]) & A[index(2+2, 1)]);
+		C[3] = A[index(3, 1)] ^ ((~A[index(3+1, 1)]) & A[index(3+2, 1)]);
+		C[4] = A[index(4, 1)] ^ ((~A[index(4+1, 1)]) & A[index(4+2, 1)]);
+		A[index(0, 1)] = C[0];
+		A[index(1, 1)] = C[1];
+		A[index(2, 1)] = C[2];
+		A[index(3, 1)] = C[3];
+		A[index(4, 1)] = C[4];
+		
+		C[0] = A[index(0, 2)] ^ ((~A[index(0+1, 2)]) & A[index(0+2, 2)]);
+		C[1] = A[index(1, 2)] ^ ((~A[index(1+1, 2)]) & A[index(1+2, 2)]);
+		C[2] = A[index(2, 2)] ^ ((~A[index(2+1, 2)]) & A[index(2+2, 2)]);
+		C[3] = A[index(3, 2)] ^ ((~A[index(3+1, 2)]) & A[index(3+2, 2)]);
+		C[4] = A[index(4, 2)] ^ ((~A[index(4+1, 2)]) & A[index(4+2, 2)]);
+		A[index(0, 2)] = C[0];
+		A[index(1, 2)] = C[1];
+		A[index(2, 2)] = C[2];
+		A[index(3, 2)] = C[3];
+		A[index(4, 2)] = C[4];
+		
+		C[0] = A[index(0, 3)] ^ ((~A[index(0+1, 3)]) & A[index(0+2, 3)]);
+		C[1] = A[index(1, 3)] ^ ((~A[index(1+1, 3)]) & A[index(1+2, 3)]);
+		C[2] = A[index(2, 3)] ^ ((~A[index(2+1, 3)]) & A[index(2+2, 3)]);
+		C[3] = A[index(3, 3)] ^ ((~A[index(3+1, 3)]) & A[index(3+2, 3)]);
+		C[4] = A[index(4, 3)] ^ ((~A[index(4+1, 3)]) & A[index(4+2, 3)]);
+		A[index(0, 3)] = C[0];
+		A[index(1, 3)] = C[1];
+		A[index(2, 3)] = C[2];
+		A[index(3, 3)] = C[3];
+		A[index(4, 3)] = C[4];
+		
+		C[0] = A[index(0, 4)] ^ ((~A[index(0+1, 4)]) & A[index(0+2, 4)]);
+		C[1] = A[index(1, 4)] ^ ((~A[index(1+1, 4)]) & A[index(1+2, 4)]);
+		C[2] = A[index(2, 4)] ^ ((~A[index(2+1, 4)]) & A[index(2+2, 4)]);
+		C[3] = A[index(3, 4)] ^ ((~A[index(3+1, 4)]) & A[index(3+2, 4)]);
+		C[4] = A[index(4, 4)] ^ ((~A[index(4+1, 4)]) & A[index(4+2, 4)]);
+		A[index(0, 4)] = C[0];
+		A[index(1, 4)] = C[1];
+		A[index(2, 4)] = C[2];
+		A[index(3, 4)] = C[3];
+		A[index(4, 4)] = C[4];
+		
+        // Iota
+		A[0] = A[0] ^ KeccakRoundConstants[round_number];
     }
     
     for(x = 0; x < WORDS_NUMBER; x++)
@@ -177,7 +403,8 @@ void launch_kernel(unsigned long long *messages_h, unsigned int token_number)
 	}
 
 	// Launch new kernel
-	kernel_optimixed<<<num_blocks, threads_per_block>>>(buffer_d, state_d);
+	//kernel_optimixed<<<num_blocks, threads_per_block>>>(buffer_d, state_d);
+	kernel<<<num_blocks, threads_per_block>>>(buffer_d, state_d);
 }
 
 
