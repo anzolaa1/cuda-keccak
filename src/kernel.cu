@@ -8,7 +8,7 @@
 #define __DEBUG_MODE_ON__
 #define __BENCHMARK_MODE_ON__
 
-#define THREADS_PER_BLOCK 64
+#define THREADS_PER_BLOCK 256
 #define ROUNDS_NUMBER 24
 #define WORDS_NUMBER 25
 
@@ -96,6 +96,64 @@ __global__ void kernel(UINT64 *messages_d, UINT64 *state_d)
 /*
  *
  */
+__global__ void kernel_optimixed(UINT64 *messages_d, UINT64 *state_d)
+{
+	int offset = WORDS_NUMBER * (threadIdx.x + blockIdx.x * blockDim.x);
+	unsigned int x, y, round_number;
+	UINT64 A[WORDS_NUMBER], tempA[WORDS_NUMBER], C[5], D[5];
+	
+	// Absorbing
+	for(x = 0; x < WORDS_NUMBER; x++)
+        	A[x] = state_d[offset + x] ^ messages_d[offset + x];
+
+    	for(round_number = 0; round_number < ROUNDS_NUMBER; round_number++) {
+		// Theta
+		for(x=0; x<5; x++) {
+			C[x] = 0; 
+			for(y=0; y<5; y++) 
+				C[x] = C[x] ^ A[index(x, y)];
+			D[x] = ROL64(C[x], 1);
+		}
+		for(x=0; x<5; x++)
+			for(y=0; y<5; y++)
+				A[index(x, y)] = A[index(x,y)] ^ D[(x+1)%5] ^ C[(x+4)%5];
+
+        	// Rho
+		for(x=0; x<5; x++) 
+			for(y=0; y<5; y++)
+				A[index(x, y)] = ROL64(A[index(x, y)], KeccakRhoOffsets[index(x, y)]);
+
+		// Pi
+        	for(x=0; x<5; x++) for(y=0; y<5; y++)
+			tempA[index(x, y)] = A[index(x, y)];
+		for(x=0; x<5; x++) for(y=0; y<5; y++)
+			A[index(0*x+1*y, 2*x+3*y)] = tempA[index(x, y)];
+		
+        	// Chi
+        	for(y=0; y<5; y++) { 
+			for(x=0; x<5; x++)
+				C[x] = A[index(x, y)] ^ ((~A[index(x+1, y)]) & A[index(x+2, y)]);
+			for(x=0; x<5; x++)
+				A[index(x, y)] = C[x];
+		}
+		
+        	// Iota
+		A[index(0, 0)] = A[index(0,0)] ^ KeccakRoundConstants[round_number];
+    }
+    
+    for(x = 0; x < WORDS_NUMBER; x++)
+        state_d[offset + x] = A[x];
+}
+
+
+
+
+
+
+
+/*
+ *
+ */
 void launch_kernel(unsigned long long *messages_h, unsigned int token_number)
 {
 	dim3 threads_per_block(THREADS_PER_BLOCK);
@@ -119,7 +177,7 @@ void launch_kernel(unsigned long long *messages_h, unsigned int token_number)
 	}
 
 	// Launch new kernel
-	kernel<<<num_blocks, threads_per_block>>>(buffer_d, state_d);
+	kernel_optimixed<<<num_blocks, threads_per_block>>>(buffer_d, state_d);
 }
 
 
