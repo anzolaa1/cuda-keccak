@@ -5,7 +5,7 @@
 #include "kernel.h"
 
 
-#define __DEBUG_MODE_ON__
+//#define __DEBUG_MODE_ON__
 #define __BENCHMARK_MODE_ON__
 
 #define THREADS_PER_BLOCK 256
