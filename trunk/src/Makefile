@@ -7,6 +7,8 @@ NVCC=$(CUDA_HOME)/bin/nvcc
 
 NVCFLAGS= -g -G \
           -O2 \
+	  --ptxas-options=-v \
+	  -arch=sm_11 \
 	  -I $(CUDASDKROOT)/C/common/inc \
 	  -I $(CUDASDKROOT)/include
 
