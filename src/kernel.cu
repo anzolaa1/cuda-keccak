@@ -5,14 +5,14 @@
 #include "kernel.h"
 
 
-//#define __DEBUG_MODE_ON__
+#define __DEBUG_MODE_ON__
 #define __BENCHMARK_MODE_ON__
 
 #define THREADS_PER_BLOCK 32
 #define ROUNDS_NUMBER 24
 #define WORDS_NUMBER 25
 
-//#define index(x, y) (((x)%5)+5*((y)%5))
+#define index(x, y) (((x)%5)+5*((y)%5))
 
 // NVCC Bug
 //#define ROL64(a, offset) ((offset != 0) ? ((((UINT64)a) << offset) ^ (((UINT64)a) >> (64-offset))) : a)
@@ -52,7 +52,7 @@ __global__ void kernel(UINT64 *messages_d, UINT64 *state_d)
 	// Absorbing
 	for(i = 0; i < WORDS_NUMBER; i++)
         	A[i] = state_d[offset + i] ^ messages_d[offset + i];
-	/*
+
     	for(round_number = 0; round_number < ROUNDS_NUMBER; round_number++) {
 		// Theta
 		for(x=0; x<5; x++) {
@@ -90,7 +90,59 @@ __global__ void kernel(UINT64 *messages_d, UINT64 *state_d)
 
     for(i = 0; i < WORDS_NUMBER; i++)
         state_d[offset + i] = A[i];
-*/
+}
+
+
+__global__ void kernel_shared(UINT64 *messages_d, UINT64 *state_d)
+{
+	
+	int offset = WORDS_NUMBER * (threadIdx.x + blockIdx.x * blockDim.x);
+	int offset_ = WORDS_NUMBER * threadIdx.x;
+	unsigned int i, x, y, round_number;
+	__shared__ UINT64 A[25*THREADS_PER_BLOCK], tempA[25*THREADS_PER_BLOCK], C[5*THREADS_PER_BLOCK], D[5*THREADS_PER_BLOCK];
+	
+
+	// Absorbing
+	for(i = 0; i < WORDS_NUMBER; i++)
+        	A[i + offset_] = state_d[offset + i] ^ messages_d[offset + i];
+
+    	for(round_number = 0; round_number < ROUNDS_NUMBER; round_number++) {
+		// Theta
+		for(x=0; x<5; x++) {
+			C[x + offset_] = 0; 
+			for(y=0; y<5; y++) 
+				C[x + offset_] ^= A[index(x, y) + offset_];
+			D[x + offset_] = ROL64(C[x + offset_], 1);
+		}
+		for(x=0; x<5; x++)
+			for(y=0; y<5; y++)
+				A[index(x, y) + offset_] ^= D[(x+1)%5 + offset_] ^ C[(x+4)%5 + offset_];
+
+        	// Rho
+		for(x=0; x<5; x++) 
+			for(y=0; y<5; y++)
+				A[index(x, y) + offset_] = ROL64(A[index(x, y) + offset_], KeccakRhoOffsets[index(x, y)]);
+
+		// Pi
+        	for(x=0; x<5; x++) for(y=0; y<5; y++)
+			tempA[index(x, y) + offset_] = A[index(x, y) + offset_];
+		for(x=0; x<5; x++) for(y=0; y<5; y++)
+			A[index(0*x+1*y, 2*x+3*y) + offset_] = tempA[index(x, y) + offset_];
+		
+        	// Chi
+        	for(y=0; y<5; y++) { 
+			for(x=0; x<5; x++)
+				C[x + offset_] = A[index(x, y) + offset_] ^ ((~A[index(x+1, y) + offset_]) & A[index(x+2, y) + offset_]);
+			for(x=0; x<5; x++)
+				A[index(x, y) + offset_] = C[x + offset_];
+		}
+		
+        	// Iota
+		A[0] ^= KeccakRoundConstants[round_number];
+    }
+
+    for(i = 0; i < WORDS_NUMBER; i++)
+        state_d[offset + i] = A[i + offset_];
 }
 
 
@@ -392,16 +444,11 @@ __global__ void kernel_optimixed(UINT64 *messages_d, UINT64 *state_d)
 		
         // Iota
 		A[0] = A[0] ^ KeccakRoundConstants[x];
-    }
-    
-    for(x = 0; x < WORDS_NUMBER; x++)
-        state_d[offset + x] = A[x];
+	}
+ 
+    	for(x = 0; x < WORDS_NUMBER; x++)
+        	state_d[offset + x] = A[x];
 }
-
-
-
-
-
 
 
 /*
@@ -430,6 +477,7 @@ void launch_kernel(unsigned long long *messages_h, unsigned int token_number)
 	}
 
 	// Launch new kernel
+	//kernel_shared<<<num_blocks, threads_per_block>>>(buffer_d, state_d);
 	kernel_optimixed<<<num_blocks, threads_per_block>>>(buffer_d, state_d);
 	//kernel<<<num_blocks, threads_per_block>>>(buffer_d, state_d);
 }
