@@ -1,0 +1,45 @@
+\documentclass[a4paper,11pt]{report}
+%
+%--------------------   start of the 'preamble'
+%
+\usepackage{graphicx,amssymb,amstext,amsmath}
+\usepackage{listings}
+\lstset{postbreak=\space, breakindent=2pt, breaklines, basicstyle=\scriptsize, tabsize=4}
+
+%
+%%    homebrew commands -- to save typing
+\newcommand\etc{\textsl{etc}}
+\newcommand\eg{\textsl{eg.}\ }
+\newcommand\etal{\textsl{et al.}}
+\newcommand\Quote[1]{\lq\textsl{#1}\rq}
+\newcommand\fr[2]{{\textstyle\frac{#1}{#2}}}
+\newcommand\miktex{\textsl{MikTeX}}
+\newcommand\comp{\textsl{The Companion}}
+\newcommand\nss{\textsl{Not so Short}}
+%
+%---------------------   end of the 'preamble'
+%
+\begin{document}
+%-----------------------------------------------------------
+\title{Cuda-Keccak}
+\author{Giuseppe Chindemi, Nicola Crovetti}
+\maketitle
+%-----------------------------------------------------------
+\begin{abstract}\centering
+The abstract \dots
+\end{abstract}
+%-----------------------------------------------------------
+\tableofcontents
+\newpage
+\listoffigures
+%-----------------------------------------------------------
+\include{introduction}
+\include{cuda-overview}
+\include{conclusions}
+%-----------------------------------------------------------
+%\addcontentsline{toc}{chapter}{\numberline{}Bibliography}
+%\include{biblio}
+%-----------------------------------------------------------
+%\include{app1}
+%-----------------------------------------------------------
+\end{document}
