@@ -1,1 +1,9 @@
 \chapter{Conclusions}
+The 'sigle implementation' of CUDA Keccak did not achieve effective performance improvements if compared to the CPU reference version of the algorithm.\\
+This result was not surprising because of several reasons:
+\begin{description}
+\item [Intrinsic Sequentiality of Keccak] Due to the fact that each step of the algorithm needs the results of the previous one before starting, only the operations belonging to the current step can be actually executed in parallel. This situation leads to a low exploitation of the GPU resources. As described in Section \ref{chap:design}, only 25 threads are used, and furthermore this number does not scale with the capabilities of the GPU device.
+\item [Arithmetic Operations] Some operations required by the Keccak algorithm, like SHIFT-64 or bit to bit XOR, reduce the performance in terms of instructions per seconds. Trying to avoid the use of those kind of operations in the algorithm implementation is equivalent to rewriting the algorithm itself. Resuming, a few threads performing rather slow operations leads to an under-exploitation of the possibilities offered by the Cuda Framework.
+\end{description}
+A possible solution could be, considering the original Keccak algorithm, design a completely new algorithm, well suited for parallelism, implementing the same hash-function. Even if this idea could be interesting, it is obviously out of the scope of this work.
+
