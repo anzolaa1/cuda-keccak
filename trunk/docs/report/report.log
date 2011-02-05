@@ -1,4 +1,4 @@
-This is pdfTeXk, Version 3.1415926-1.40.9 (Web2C 7.5.7) (format=pdflatex 2011.2.5)  5 FEB 2011 09:14
+This is pdfTeXk, Version 3.1415926-1.40.9 (Web2C 7.5.7) (format=pdflatex 2011.2.5)  5 FEB 2011 09:32
 entering extended mode
  %&-line parsing enabled.
 **report
@@ -256,16 +256,16 @@ File: img/nvidia-execution-model.png Graphic file (type png)
 
  (./design.tex
 Chapter 4.
-) [10
+[10
 
 
 
-]
+]) [11]
 \openout2 = `results.aux'.
 
  (./results.tex
 Chapter 5.
-) [11
+) [12
 
 
 
@@ -274,7 +274,7 @@ Chapter 5.
 
  (./conclusions.tex
 Chapter 6.
-) [12
+) [13
 
 
 
@@ -285,11 +285,11 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 2788 strings out of 495069
- 36024 string characters out of 1183034
+ 2789 strings out of 495069
+ 36039 string characters out of 1183034
  94600 words of memory out of 3000000
- 5915 multiletter control sequences out of 10000+50000
- 12266 words of font info for 46 fonts, out of 3000000 for 5000
+ 5916 multiletter control sequences out of 10000+50000
+ 12573 words of font info for 47 fonts, out of 3000000 for 5000
  28 hyphenation exceptions out of 8191
  26i,6n,32p,978b,219s stack positions out of 5000i,500n,10000p,200000b,50000s
 </usr/share/texmf-dist/fonts/type1/bluesky/cm/cmbx10.pfb></usr/share/texmf-di
@@ -297,9 +297,9 @@ st/fonts/type1/bluesky/cm/cmbx12.pfb></usr/share/texmf-dist/fonts/type1/bluesky
 /cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/bluesky/cm/cmr12.pfb></usr/sha
 re/texmf-dist/fonts/type1/bluesky/cm/cmr17.pfb></usr/share/texmf-dist/fonts/typ
 e1/bluesky/cm/cmsy10.pfb>
-Output written on report.pdf (14 pages, 104596 bytes).
+Output written on report.pdf (15 pages, 107922 bytes).
 PDF statistics:
- 77 PDF objects out of 1000 (max. 8388607)
+ 80 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 131072)
  11 words of extra memory for PDF output out of 10000 (max. 10000000)
 
