@@ -1,0 +1,5 @@
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Logical Organization of all the CUDA capable devices. The programmer does not have to take care of the physical organization of the GPU that will actually execute the program.}}{5}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces nVidia Execution Model, an example of heterogeneous programming.}}{8}
+\addvspace {10\p@ }
