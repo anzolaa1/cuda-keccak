@@ -1,7 +1,7 @@
-This is pdfTeXk, Version 3.1415926-1.40.9 (Web2C 7.5.7) (format=pdflatex 2011.2.5)  5 FEB 2011 06:46
+This is pdfTeXk, Version 3.1415926-1.40.9 (Web2C 7.5.7) (format=pdflatex 2011.2.5)  5 FEB 2011 09:14
 entering extended mode
  %&-line parsing enabled.
-**report.tex
+**report
 (./report.tex
 LaTeX2e <2005/12/01>
 Babel <v3.8l> and hyphenation patterns for english, usenglishmax, dumylang, noh
@@ -143,11 +143,11 @@ File: listings.cfg 2007/02/22 1.4 listings configuration
 ))
 Package: listings 2007/02/22 1.4 (Carsten Heinz)
  (./report.aux
-(./introduction.aux) (./cuda-overview.aux
+(./introduction.aux) (./keccak-overview.aux) (./cuda-overview.aux
 
 LaTeX Warning: Label `fig:nVidiaGPUsLogicalOrg' multiply defined.
 
-) (./conclusions.aux))
+) (./design.aux) (./results.aux) (./conclusions.aux))
 \openout1 = `report.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 22.
@@ -164,7 +164,8 @@ LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 22.
 LaTeX Font Info:    ... okay on input line 22.
 \c@lstlisting=\count109
 LaTeX Font Info:    Try loading font information for U+msa on input line 26.
- (/usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd
+
+(/usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2002/01/19 v2.2g AMS font definitions
 )
 LaTeX Font Info:    Try loading font information for U+msb on input line 26.
@@ -200,27 +201,36 @@ Underfull \hbox (badness 10000) in paragraph at lines 2--36
 
 
 ]
+\openout2 = `keccak-overview.aux'.
+
+ (./keccak-overview.tex
+Chapter 2.
+) [4
+
+
+
+]
 \openout2 = `cuda-overview.aux'.
 
  (./cuda-overview.tex
-Chapter 2.
+Chapter 3.
 
 Underfull \hbox (badness 10000) in paragraph at lines 2--7
 
  []
 
-[4
+[5
 
 
 
-] <img/hw-model.png, id=25, 401.5pt x 506.89375pt>
+] <img/hw-model.png, id=29, 401.5pt x 506.89375pt>
 File: img/hw-model.png Graphic file (type png)
  <use img/hw-model.png>
 Underfull \hbox (badness 10000) in paragraph at lines 15--18
 
  []
 
-[5 <./img/hw-model.png>]
+[6 <./img/hw-model.png>]
 LaTeX Font Info:    Try loading font information for OMS+cmr on input line 25.
  (/usr/share/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
@@ -237,41 +247,59 @@ Underfull \hbox (badness 10000) in paragraph at lines 33--36
 
  []
 
-[6] <img/nvidia-execution-model.png, id=36, 432.61626pt x 624.3325pt>
+[7] <img/nvidia-execution-model.png, id=39, 432.61626pt x 624.3325pt>
 File: img/nvidia-execution-model.png Graphic file (type png)
 
-<use img/nvidia-execution-model.png>) [7] [8 <./img/nvidia-execution-model.png 
+<use img/nvidia-execution-model.png>) [8] [9 <./img/nvidia-execution-model.png 
 (PNG copy)>]
+\openout2 = `design.aux'.
+
+ (./design.tex
+Chapter 4.
+) [10
+
+
+
+]
+\openout2 = `results.aux'.
+
+ (./results.tex
+Chapter 5.
+) [11
+
+
+
+]
 \openout2 = `conclusions.aux'.
 
  (./conclusions.tex
-Chapter 3.
-) [9
+Chapter 6.
+) [12
 
 
 
-] (./report.aux (./introduction.aux) (./cuda-overview.aux)
-(./conclusions.aux))
+] (./report.aux (./introduction.aux) (./keccak-overview.aux)
+(./cuda-overview.aux) (./design.aux) (./results.aux) (./conclusions.aux))
 
 LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 2763 strings out of 495069
- 35679 string characters out of 1183034
- 93680 words of memory out of 3000000
- 5911 multiletter control sequences out of 10000+50000
+ 2788 strings out of 495069
+ 36024 string characters out of 1183034
+ 94600 words of memory out of 3000000
+ 5915 multiletter control sequences out of 10000+50000
  12266 words of font info for 46 fonts, out of 3000000 for 5000
  28 hyphenation exceptions out of 8191
- 26i,6n,32p,982b,219s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 26i,6n,32p,978b,219s stack positions out of 5000i,500n,10000p,200000b,50000s
 </usr/share/texmf-dist/fonts/type1/bluesky/cm/cmbx10.pfb></usr/share/texmf-di
 st/fonts/type1/bluesky/cm/cmbx12.pfb></usr/share/texmf-dist/fonts/type1/bluesky
 /cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/bluesky/cm/cmr12.pfb></usr/sha
 re/texmf-dist/fonts/type1/bluesky/cm/cmr17.pfb></usr/share/texmf-dist/fonts/typ
 e1/bluesky/cm/cmsy10.pfb>
-Output written on report.pdf (11 pages, 101060 bytes).
+Output written on report.pdf (14 pages, 104596 bytes).
 PDF statistics:
- 67 PDF objects out of 1000 (max. 8388607)
+ 77 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 131072)
  11 words of extra memory for PDF output out of 10000 (max. 10000000)
 

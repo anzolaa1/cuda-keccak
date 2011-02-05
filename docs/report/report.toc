@@ -1,7 +1,14 @@
 \contentsline {chapter}{\numberline {1}Introduction}{3}
-\contentsline {chapter}{\numberline {2}CUDA Overview}{4}
-\contentsline {section}{\numberline {2.1}Multiprocessors}{5}
-\contentsline {section}{\numberline {2.2}Memory Hierarchy}{6}
-\contentsline {section}{\numberline {2.3}Programming Model}{6}
-\contentsline {section}{\numberline {2.4}Best Practices}{7}
-\contentsline {chapter}{\numberline {3}Conclusions}{9}
+\contentsline {chapter}{\numberline {2}Keccak Overview}{4}
+\contentsline {chapter}{\numberline {3}CUDA Overview}{5}
+\contentsline {section}{\numberline {3.1}Multiprocessors}{6}
+\contentsline {section}{\numberline {3.2}Memory Hierarchy}{7}
+\contentsline {section}{\numberline {3.3}Programming Model}{7}
+\contentsline {section}{\numberline {3.4}Best Practices}{8}
+\contentsline {chapter}{\numberline {4}Design}{10}
+\contentsline {section}{\numberline {4.1}Single}{10}
+\contentsline {section}{\numberline {4.2}Multi}{10}
+\contentsline {chapter}{\numberline {5}Results}{11}
+\contentsline {section}{\numberline {5.1}Single}{11}
+\contentsline {section}{\numberline {5.2}Multi}{11}
+\contentsline {chapter}{\numberline {6}Conclusions}{12}
