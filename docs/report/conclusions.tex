@@ -7,7 +7,7 @@ This result was not surprising because of several reasons:
 \end{description}
 The 'multi implementation' instead has actually obtained a significant speed-up \dots
 As expected, devices with a compute cap lower than 1.3 \dots
-However not enough, expecially supposing a multithreading cpu implementation \dots
+However not enough, especially supposing a multi-threading CPU implementation \dots
 The reason behind this are many, but one is probably the most important \dots
 Local memory is a memory abstraction that implies "local in the scope of each thread". It is not an actual hardware component of the multi-processor. In actuality, local memory resides in global memory allocated by the compiler and delivers the same performance as any other global memory region. Normally, automatic variables declared in a kernel reside in registers, which provide very fast access. Unfortunately, the relationship between automatic variables and local memory continues to be a source of confusion for CUDA programmers. The compiler might choose to place automatic variables in local memory when:
 \begin{itemize}
@@ -15,7 +15,9 @@ Local memory is a memory abstraction that implies "local in the scope of each th
 \item The compiler cannot determine if an array is indexed with constant quantities. Please note that registers are not addressable so an array has to go into local memory -- even if it is a two-element array -- when the addressing of the array is not known at compile time.
 \item \textbf{A structure would consume too much register space}.
 \end{itemize}
-In this work, expecially the last one of the previous has been a big problem \dots
+In this work, especially the last one of the previous has been a big problem \dots
+The shared kernel was an unsuccessful attempt to reduce the impact of this problem on performance. The reason behind the failure of this solution is that also the amount of shared memory per block is limited. For this reason the number of threads per block have been reduced in order to fit the availability of shared memory. The result was a very low occupancy profile with corresponding impact on performance due to the under usage of the device resources.
+
 \section{Future Developments Suggestions}
 There are several ways in which this work can be extended and improved, event though these considerations are out of the scope:
 \begin{description}
