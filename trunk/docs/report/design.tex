@@ -55,20 +55,25 @@ All the designed algorithms have a common base, showed in Alg. \ref{alg:cuda-kec
 \end{algorithm}
 The only difference between all the solutions designed is the kernel adopted for the computations. Three different kernels have been produced:\\
 \begin{itemize}
-\item \textbf{Kernel Base}
-\item \textbf{Kernel Unrolled}
-\item \textbf{Kernel SH}
+\item \textbf{Kernel Base} Almost identical to the Keccak reference permutation function.
+\item \textbf{Kernel Unrolled} All the loop have been unrolled in order to avoid thr continuous flush of the computation pipeline.
+\item \textbf{Kernel SH} Local variable have been placed into shared memory to prevent the usage of the slow Local Memory.
 \end{itemize}
 The test performed showed that 'Kernel Unrolled' is the most effective. Further details on this in Chap. \ref{chap:conclusions}.
 
 \subsection{Memory Transfers}
-Memory latency hiding \dots 
+Memory transfers between Host and Device Memory are the main cause of performance lost in the CUDA applications.\\
+In this work, from the logical point of view, there is a need for a single large data transfers from the Host to the Device: the messages by which to evaluate the hashes. The retrieval of the computed hashes can be considered negligible compared to the previous data flow. The most obvious solution to provide the data for the computations to the GPU is of course a single big data transfers from the Host, however, this idea has been rejected because judged unnecessarily onerous. This assertion emerges from the consideration that only one token of each message can be considered at a time, because of the serial nature of Keccak. For this reason the data flow has been partitioned into tokes and performed using a double buffer strategy: during the computations of the \textit{i th} token, the data needed for the \textit{i+1 th} one are loaded into a separate memory location. It has been verified that the latency of these memory transfers is completely hidden by the kernel execution.
 
 \subsection{Loop Unrolling}
-Nvcc problem
+As mentioned in Chap. \ref{chap:cuda-overview}, no branch prediction strategy is implemented into CUDA devices. For this reason loops can be a source of trouble in CUDA applications, especially if they are many and consist of a few instructions, as in this case.\\
+Considering that the nvcc compiler has often an unpredictable behaviour and that it is still an open highly variable project, the loops founded in the original code have been physically fully unrolled instead of using the compiler unroll directive. The results obtained by this operation were satisfying and have influenced the choice of the unrolled kernel as reference version for the project.
 
 \subsection{Registers Usage}
-Too many registers, local memory, shared attempt
+Registers usage is a sore point for all the CUDA applications. These are the default location of local variables and contain temporary results of arithmetic operations.\\
+In order to maximize the occupancy, and consequently the performance, the number of used registers per thread must be kept under very limited thresholds, depending on the compute capability of the device. On the other hand, registers are the fastest memory locations available in the GPU and for this reason their usage is strongly encouraged, still for the performance implications.\\
+The nvcc compiler by default attempt to maximize the registers usage. Unfortunately, when the total amount of memory requested by a thread exceed the registers availability, the compiler can decide to place local variables and temporary result into a special part of the Global Memory, the so called Local Memory. This locations are private and have the scope of a single threads like registers, but unlike registers these are located off-chip and have the same high latency of the Global Memory. For this reason the usage of Local Memory must be avoided.\\
+This work, by its own nature, is highly registers intensive and for this reason suffers from limited availability of fast memory: a big part of the local variables of the threads are allocated into Local Memory. In order to reduce the impact on performance, a special kernel that uses the shared memory as local variables location has been designed.
 
 \subsection{Left Shift}
-A famous nvcc bug
+A well-known nvcc bug has been a source of problems in the early stages of development. The bug, reported to the nvidia community a long time ago but not yet corrected, concerns to the inability of performing bitwise left shift when the shift factor is not stored into a constant variable. As suggested by nvidia itself, in order to bypass the problem the shift factor have been copied into a constant variable immediately before the shift operations.
