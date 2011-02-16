@@ -1,5 +1,40 @@
 \chapter{Results} \label{chap:results}
 \section{Local Parallelization}
+This approach does not lead to an actual speed-up on the computation of a single message. As we can see in figure \ref{fig:singleMessage}, cpu computation time is slightly.
+In this situation the thread parallelization capability of the gpu is not exploited. For these reasons we decided to concentrate on the multi-message approach.
+\begin{figure}[h!bt]
+	\centerline{\includegraphics[width=1\textwidth]{img/oneMessage.png}}
+	\caption{Cpu-Gpu comparison of computational time in the 25 thread per message algorithm}
+	\label{fig:singleMessage}
+\end{figure}
+
+\newpage
+
 \section{Global Parallelization}
+For the multiple messages algorithm we used a randomic source of data genereting a number of messages equal to the thread number to be tested.
+The computation time scales better with this approach as we can se in figure \ref{fig:gpuComparison}.  
+\begin{figure}[h!bt]
+	\centerline{\includegraphics[width=1\textwidth]{img/gpu.png}}
+	\caption{Performance comparison of 3 different GPU tested. With the increasing the number of parallel thread, high level gpus perform a major boost on the computation.}
+	\label{fig:gpuComparison}
+\end{figure}
+
+\newpage
+
+Compared to the cpu computational time for the same number of messages processed (sequentially), a multi-message approch can reach a speed-up around 3x on a middle-level gpu, and can grow to 10x using a higher level gpu.
+\begin{figure}[h!bt]
+	\centerline{\includegraphics[width=1\textwidth]{img/versus.png}}
+	\caption{Comparison test between high level gpu and cpu. Gpu speed-up become significant after the reach the complete thread capbility of the gpu.}
+	\label{fig:CPUVersusGPU}
+\end{figure}
+
+\newpage
+
+As shown in fiugure \ref{fig:speedup}, the speed-up grow constantly untill the maximum number of parallel thread of the gpu is reached.
+\begin{figure}[h!bt]
+	\centerline{\includegraphics[width=1\textwidth]{img/speedup.png}}
+	\caption{Speed-up variation in the gpu-cpu comparison test.}
+	\label{fig:speedup}
+\end{figure}
 
 
