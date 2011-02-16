@@ -1,2 +1,17 @@
 \chapter{Introduction} \label{chap:introduction}
-\dots\\
+
+This work is aimed to implement a parallelized version of cryptographic hash function KECCAK, SHA-3 candidate.
+More precisely, we used the Nvidia CUDA a framework, making a porting of the KECCAK core algorithm,
+studying in detail how to achieve the best possible speed-up.
+The KECCAK hash function is strictly sequential in data processing, and its parallelization requires a work
+beyond simple porting of the code.\\
+
+Were taken into account two possible point of view:\\
+Initially we worked on the possibility of parallelizing the calculation of the digest KECCAK hash function on a single input file;
+with this approach was implemented in CUDA a first version of the core algorithm that uses 25 parallel threads.\\
+Another version created, other hand, provides the parallelization of the elaboration of multiple incoming messages on which the digest is calculated.
+Those messages can be of different size and asynchronously posted to the GPU.\\
+
+Chapter 2 describes briefly the KECCAK hash function , Chapter 3 presents a summary analysis of the Nvidia CUDA framework
+used. Chapter 4 describes designs of algorithms used on both versions while in Chapters 5 and 6 are
+viewed the results we have obtained and presented possible future developments.\\

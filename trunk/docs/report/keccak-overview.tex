@@ -1,1 +1,83 @@
-\chapter{Keccak Overview} \label{chap:keccak-overview}
+\chapter{Keccak Overview} \label{chap:keccak-overview} 
+Keccak is a family of hash functions that are based on the sponge construction and use as a building block a permutation from a set of 7 permutations.
+In this overview, we specify these permutations and the Keccak sponge functions. For more information, and for the reference code, please refer to the Keccak web page.
+
+\section{The Keccak-f permutations}
+There are 7 Keccak-f permutations, indicated by Keccak-f[b], where \({b = 25 \times 2^l}\) and
+l ranges from 0 to 6. Keccak-f [b] is a permutation over \({s \in Z^b_2}\), where the bits of s are 
+numbered from 0 to \({b − 1}\). We call b the width of the permutation.\\
+
+In the sequel, the permutation Keccak-f[b] is described on a state \({a}\) that is a three-dimensional array of elements, namely \({a[5][5][w]}s\), 
+with \({w = 2l}\). The mapping between the bits of \({s}\) and those of \({a}\) is \({s[w(5y + x) + z] = a[x][y][z]}\). The expression \({a[x][y][z]}\) with
+\({x, y \in Z5}\) and \({z \in Z_w}\) , denotes the bit in position \({(x, y, z)}\). It follows that indexing starts from
+zero; expressions in the x and y coordinates should be taken modulo 5 and expressions in the
+\({z}\) coordinate modulo \({w}\). Both the [y][z] indices or all
+three indices, implying that the statement is valid for all values of the omitted indices.\\
+
+Keccak-f [b] is an iterated permutation, consisting of a sequence of \({nr}\) rounds \({R}\), indexed
+with \({i_r}\) from 0 to \({nr − 1}\). A round consists of five steps:\\
+
+
+	$R = \iota \circ \chi \circ \pi \circ \rho \circ \omega$ ,   with \\
+
+
+\({	\omega : a[x][y][z] \leftarrow a[x][y][z] + \sum_{y'=0}^4 a[x − 1][y'][z] + \sum_{y'=0}^4 a[x + 1][y ′ ][z − 1] ,} \)\\
+
+$\rho : a[x][y][z] \leftarrow a[x][y][z − (t + 1)(t + 2)/2]$,\\
+with t satisfying 0 $\leq$ t $<$ 24 and
+$ \left( \begin{array}{cc}
+0 & 1 \\
+2 & 3 \\
+\end{array}
+\right)^{t}
+\left(
+\begin{array}{c}
+1 \\
+0 \\
+\end{array}
+\right) =
+\left(
+\begin{array}{c}
+x\\
+y\\
+\end{array}
+\right)
+$ in GF$(5)^{2 \times 2}$,\\
+or $t = -1$ if $x = y = 0$ \\
+
+$ \pi: a[x][y] \leftarrow a[x'][y'] $, with
+$\left( \begin{array}{c}
+x \\
+y \\
+\end{array}
+\right) = \left( \begin{array}{cc}
+0 & 1 \\
+2 & 3 \\
+\end{array}
+\right)
+\left( \begin{array}{c}
+x' \\
+y' \\
+\end{array}
+\right)$\\
+
+$\chi: a[x] \leftarrow a[x] + (a[]x+1]+1)a[]x+2$\\
+
+$\iota: a \leftarrow a + RC[i_r]$ \\
+
+
+The additions and multiplications between the terms are in GF(2). With the exception of
+the value of the round constants $RC[i_r]$, these rounds are identical. The round constants are
+given by (with the first index denoting the round number)\\
+
+$RC[i_r][0][0][2^j − 1] = rc[j + 7i_r ]$, for all $0 \leq j \leq l$,\\
+
+and all other values of $RC[i_r][x][y][z]$ are zero. The values $rc[t] \in $ GF(2) are defined as the
+output of a binary linear feedback shift register (LFSR):\\
+
+$rc[t] = (x^t$ mod $x^8 + x^6 + x^5 + x^4 + 1)$ mod $x$ in GF(2)[x].\\
+
+The number of rounds nr is determined by the width of the permutation, namely,\\
+
+\centering
+$n_r = 12 + 2l$
